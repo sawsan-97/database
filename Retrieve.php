@@ -1,6 +1,4 @@
-# database
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Students Data</title>
@@ -25,6 +23,7 @@
 <body>
 
 <h2>Students Data</h2>
+<a href="index.php">add a new student</a>
 
 <?php
 $host = 'localhost';

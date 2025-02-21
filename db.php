@@ -79,13 +79,16 @@ INSERT INTO courses (course_id, course_name, course_code, credits, department) V
 ('Physics I', 'PHY101', 4, 'Physics'),
 ('Organic Chemistry', 'CHEM101', 3, 'Chemistry'),
 
-INSERT INTO Enrollments(enrollment_id, student_id, course_id, grade) VALUES
+INSERT INTO courses_asignments (instructor_id, course_id, semester, year) VALUES
 (1, 1, 'Fall', 2021),
 (2, 2, 'Fall', 2021),
 (3, 3, 'Fall', 2021),
 (4, 4, 'Fall', 2021),
-(5, 5, 'Fall', 2021),
-INSERT INTO Enrollments (student_id, course_id, grade) VALUES
+(5, 5, 'Fall', 2021);
+
+
+
+INSERT INTO enrollments (student_id, course_id, grade) VALUES
 (1, 1, 'A'), (1, 2, 'B'),
 (2, 1, 'B'), (2, 3, 'A'),
 (3, 2, 'A'), (3, 4, 'B'),
@@ -190,7 +193,56 @@ LEFT JOIN enrollments ON courses.course_id = enrollments.course_id
 WHERE enrollments.course_id IS NULL;
 
 
+//Create a function to calculate a student's age based on date_of_birth.
+DELIMITER //
 
+CREATE FUNCTION CalculateAge(date_of_birth DATE) RETURNS INT
+BEGIN
+    DECLARE age INT;
+    SET age = TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE());
+    RETURN age;
+END //
+
+DELIMITER ;
+SELECT CalculateAge('2000-01-15') AS age;
+
+SELECT first_name, last_name, CalculateAge(date_of_birth) AS age
+FROM Students;
+
+//Create a stored procedure to enroll a student in a course.
+
+DELIMITER //
+
+CREATE PROCEDURE EnrollStudent(
+    IN p_student_id INT,
+    IN p_course_id INT,
+    IN p_grade VARCHAR(2)
+)
+BEGIN
+    DECLARE studentExists INT;
+    DECLARE courseExists INT;
+
+    -- Check if the student exists
+    SELECT COUNT(*) INTO studentExists
+    FROM Students
+    WHERE student_id = p_student_id;
+
+    -- Check if the course exists
+    SELECT COUNT(*) INTO courseExists
+    FROM Courses
+    WHERE course_id = p_course_id;
+
+    -- If both the student and course exist, enroll the student
+    IF studentExists > 0 AND courseExists > 0 THEN
+        INSERT INTO Enrollments (student_id, course_id, grade)
+        VALUES (p_student_id, p_course_id, p_grade);
+    ELSE
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Student or Course not found.';
+    END IF;
+END //
+
+DELIMITER ;
 
 
 ?>
